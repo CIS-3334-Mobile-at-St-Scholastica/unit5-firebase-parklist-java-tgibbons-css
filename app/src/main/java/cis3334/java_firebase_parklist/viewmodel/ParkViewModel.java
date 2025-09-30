@@ -18,7 +18,7 @@ public class ParkViewModel extends ViewModel {
 
     // Internal mutable list for sample data
     private final ArrayList<Park> _sampleParksList = new ArrayList<>();
-
+    private final FirebaseService firebaseService = new FirebaseService();
     private final MutableLiveData<List<Park>> _parks = new MutableLiveData<>();
     public LiveData<List<Park>> getParks() {
         return _parks;
@@ -41,7 +41,12 @@ public class ParkViewModel extends ViewModel {
     public void loadParks() {
         // Simulate loading parks (in future, this would be from a FirebaseService equivalent)
         // Post a new ArrayList to LiveData to ensure observers see it as a new list
-        _parks.setValue(new ArrayList<>(_sampleParksList));
+        firebaseService.fetchParks(FirebaseService.ParkListCallback() {
+            @Override
+            public void onSuccess(List<Park> parks) {
+                _parks.setValue(parks); // Update LiveData with the fetched list.
+                Log.d("ParkViewModel", "Parks loaded successfully: " + parks.size() + " parks.");
+            }
     }
 
     public void selectPark(String parkId) {
