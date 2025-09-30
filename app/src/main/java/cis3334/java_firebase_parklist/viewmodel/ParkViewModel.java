@@ -11,13 +11,15 @@ import java.util.UUID;
 import cis3334.java_firebase_parklist.data.model.Park;
 import cis3334.java_firebase_parklist.data.firebase.FirebaseService;
 
+
 public class ParkViewModel extends ViewModel {
 
     public final String instanceId = UUID.randomUUID().toString();
-    private final FirebaseService firebaseService;
-    private ListenerRegistration parksListenerRegistration; // For holding the listener
 
-    private final MutableLiveData<List<Park>> _parks = new MutableLiveData<>(new ArrayList<>());
+    // Internal mutable list for sample data
+    private final ArrayList<Park> _sampleParksList = new ArrayList<>();
+
+    private final MutableLiveData<List<Park>> _parks = new MutableLiveData<>();
     public LiveData<List<Park>> getParks() {
         return _parks;
     }
@@ -27,26 +29,19 @@ public class ParkViewModel extends ViewModel {
         return _selectedPark;
     }
 
-    public ParkViewModel() {
+    public ParkViewModel() { // Constructor instead of init block
         Log.d("ParkViewModel", "Instance created: " + instanceId);
-        firebaseService = new FirebaseService();
-        listenForParkUpdates(); // Start listening for updates
+        // Initialize sample data
+        _sampleParksList.add(new Park("park1", "Jay Cooke State Park", "780 MN-210, Carlton, MN 55718", 46.6577, -92.2175));
+        _sampleParksList.add(new Park("park2", "Gooseberry Falls State Park", "3206 MN-61, Two Harbors, MN 55616", 47.1436, -91.4647));
+        _sampleParksList.add(new Park("park3", "Tettegouche State Park", "5702 MN-61, Silver Bay, MN 55614", 47.3090, -91.2720));
+        loadParks();
     }
 
-    private void listenForParkUpdates() {
-        Log.d("ParkViewModel", "Starting to listen for park updates from Firestore...");
-        parksListenerRegistration = firebaseService.listenForParks(new FirebaseService.ParkListCallback() {
-            @Override
-            public void onSuccess(List<Park> parks) {
-                _parks.setValue(parks); // Update LiveData whenever the list changes
-                Log.d("ParkViewModel", "Park list updated: " + parks.size() + " parks.");
-            }
-
-            @Override
-            public void onFailure(Exception e) {
-                Log.e("ParkViewModel", "Error listening for park updates.", e);
-            }
-        });
+    public void loadParks() {
+        // Simulate loading parks (in future, this would be from a FirebaseService equivalent)
+        // Post a new ArrayList to LiveData to ensure observers see it as a new list
+        _parks.setValue(new ArrayList<>(_sampleParksList));
     }
 
     public void selectPark(String parkId) {
@@ -55,31 +50,33 @@ public class ParkViewModel extends ViewModel {
             return;
         }
         Park foundPark = null;
-        List<Park> currentParks = _parks.getValue();
-        if (currentParks != null) {
-            for (Park park : currentParks) {
-                if (park.getId().equals(parkId)) {
-                    foundPark = park;
-                    break;
-                }
+        for (Park park : _sampleParksList) {
+            if (park.getId().equals(parkId)) {
+                foundPark = park;
+                break;
             }
         }
         _selectedPark.setValue(foundPark);
     }
 
     public void addPark(Park park) {
-        Log.d("ParkViewModel", "Adding park to Firestore: " + park.getName());
-        // The listener will automatically update the UI. We no longer need to manually add to the local list.
-        firebaseService.addPark(park);
+        Park newParkWithId;
+        if (park.getId() == null || park.getId().isEmpty()) {
+            // Generate a simple unique ID for sample data if not provided
+            String generatedId = "park" + (_sampleParksList.size() + 1) + (int)(Math.random() * 1000);
+            newParkWithId = new Park(generatedId, park.getName(), park.getAddress(), park.getLatitude(), park.getLongitude());
+        } else {
+            newParkWithId = park;
+        }
+        Log.d("ParkViewModel", "Adding park: " + newParkWithId.getName() + ", Instance: " + instanceId);
+        _sampleParksList.add(newParkWithId);
+        _parks.setValue(new ArrayList<>(_sampleParksList)); // Emit the updated list
+        Log.d("ParkViewModel", "Parks list size after add: " + (_parks.getValue() != null ? _parks.getValue().size() : 0));
     }
 
     @Override
     protected void onCleared() {
         super.onCleared();
-        Log.d("ParkViewModel", "Instance cleared, detaching Firestore listener: " + instanceId);
-        // Important: Detach the listener when the ViewModel is destroyed to prevent memory leaks.
-        if (parksListenerRegistration != null) {
-            parksListenerRegistration.remove();
-        }
+        Log.d("ParkViewModel", "Instance cleared: " + instanceId);
     }
 }
