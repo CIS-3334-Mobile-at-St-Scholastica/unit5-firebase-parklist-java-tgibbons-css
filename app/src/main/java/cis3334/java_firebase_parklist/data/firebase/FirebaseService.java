@@ -1,51 +1,44 @@
 package cis3334.java_firebase_parklist.data.firebase;
 
 import android.util.Log;
-
-import androidx.annotation.NonNull;
-
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
-
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.function.Consumer; // Import the Consumer interface
 import cis3334.java_firebase_parklist.data.model.Park;
 
 public class FirebaseService {
 
+    private static final String TAG = "FirebaseService";
     FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-    private void fetchParks(ParkListCallback callback) {
+    public void fetchParks(Consumer<List<Park>> callback) {
         db.collection("parks")
                 .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            for (QueryDocumentSnapshot document : task.getResult()) {
-                                Log.d("CIS3334", document.getId() + " => " + document.getData());
-                                Park park = document.toObject(Park.class);
-                                itemViewModel.addItem(park);
-                                Log.d("CIS3334", document.getId() + " => " + document.getData());
-                            }
-                        } else {
-                            Log.w("CIS3334", "Error getting documents.", task.getException());
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        ArrayList<Park> parksList = new ArrayList<>();
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            Park park = document.toObject(Park.class);
+                            park.setId(document.getId()); // Set the document ID on the park object
+                            parksList.add(park);
                         }
+                        callback.accept(parksList); // Pass the completed list to the callback
+                    } else {
+                        Log.w(TAG, "Error getting documents.", task.getException());
+                        // On failure, you could pass back an empty list
+                        callback.accept(new ArrayList<>());
                     }
                 });
-
     }
 
-    // Callback interface for fetchParks
-    public interface ParkListCallback {
-        void onSuccess(List<Park> parks);
-        void onFailure(Exception e);
+    public void addPark(Park park) {
+        db.collection("parks")
+                .add(park);
+                // optionally add listeners for success and failure
+                //.addOnSuccessListener(documentReference -> Log.d(TAG, "DocumentSnapshot added with ID: " + documentReference.getId()))
+                //.addOnFailureListener(e -> Log.w(TAG, "Error adding document", e));
     }
 
 }
