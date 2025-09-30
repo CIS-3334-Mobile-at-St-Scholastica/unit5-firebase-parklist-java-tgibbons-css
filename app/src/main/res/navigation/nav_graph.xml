@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/loginFragment">
+
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="cis3334.java_firebase_parklist.ui.LoginFragment"
+        android:label="LoginFragment"
+        tools:layout="@layout/fragment_login">
+        <action
+            android:id="@+id/action_loginFragment_to_parkListFragment"
+            app:destination="@id/parkListFragment"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_loginFragment_to_signUpFragment"
+            app:destination="@id/signUpFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/signUpFragment"
+        android:name="cis3334.java_firebase_parklist.ui.SignUpFragment"
+        android:label="SignUpFragment"
+        tools:layout="@layout/fragment_sign_up">
+        <action
+            android:id="@+id/action_signUpFragment_to_parkListFragment"
+            app:destination="@id/parkListFragment"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/parkListFragment"
+        android:name="cis3334.java_firebase_parklist.ui.ParkListFragment"
+        android:label="ParkListFragment"
+        tools:layout="@layout/fragment_park_list">
+        <action
+            android:id="@+id/action_parkListFragment_to_addParkFragment"
+            app:destination="@id/addParkFragment" />
+        <action
+            android:id="@+id/action_parkListFragment_to_parkDetailFragment"
+            app:destination="@id/parkDetailFragment" />
+        <action
+            android:id="@+id/action_parkListFragment_to_loginFragment"
+            app:destination="@id/loginFragment"
+            app:popUpTo="@id/nav_graph"
+            app:popUpToInclusive="true"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/addParkFragment"
+        android:name="cis3334.java_firebase_parklist.ui.AddParkFragment"
+        android:label="AddParkFragment"
+        tools:layout="@layout/fragment_add_park" />
+
+    <fragment
+        android:id="@+id/parkDetailFragment"
+        android:name="cis3334.java_firebase_parklist.ui.ParkDetailFragment"
+        android:label="ParkDetailFragment"
+        tools:layout="@layout/fragment_park_detail">
+        <argument
+            android:name="parkId"
+            app:argType="string"
+            app:nullable="true" />
+    </fragment>
+
+</navigation>
