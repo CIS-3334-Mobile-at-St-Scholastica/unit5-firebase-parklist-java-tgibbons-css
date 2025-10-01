@@ -10,7 +10,7 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer; // Import the Consumer interface
-import javax.annotation.Nullable;
+import androidx.annotation.Nullable;
 import cis3334.java_firebase_parklist.data.model.Park;
 
 public class FirebaseService {
