@@ -9,16 +9,20 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
+
 import com.google.android.material.textfield.TextInputEditText;
-import cis3334.java_firebase_parklist.R; // Ensure R is imported
-import cis3334.java_firebase_parklist.viewmodel.AuthViewModel; // We will create this
+
+import cis3334.java_firebase_parklist.R;
+import cis3334.java_firebase_parklist.viewmodel.AuthViewModel;
 
 public class LoginFragment extends Fragment {
 
@@ -29,6 +33,7 @@ public class LoginFragment extends Fragment {
     private TextInputEditText editTextPassword;
     private Button buttonLogin;
     private Button buttonGoToSignUp;
+    private ProgressBar progressBar;
 
     public LoginFragment() {
         // Required empty public constructor
@@ -55,8 +60,14 @@ public class LoginFragment extends Fragment {
         editTextPassword = view.findViewById(R.id.editTextPasswordLogin);
         buttonLogin = view.findViewById(R.id.buttonLogin);
         buttonGoToSignUp = view.findViewById(R.id.buttonGoToSignUp);
+        progressBar = view.findViewById(R.id.progressBarLogin);
 
-        // TextWatcher for enabling/disabling login button
+        setupInputValidation();
+        setupClickListeners();
+        observeViewModel();
+    }
+
+    private void setupInputValidation() {
         TextWatcher textWatcher = new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -70,39 +81,48 @@ public class LoginFragment extends Fragment {
         editTextEmail.addTextChangedListener(textWatcher);
         editTextPassword.addTextChangedListener(textWatcher);
         validateInput(); // Initial check
+    }
 
+    private void setupClickListeners() {
         buttonLogin.setOnClickListener(v -> {
             String email = editTextEmail.getText().toString().trim();
             String password = editTextPassword.getText().toString().trim();
-            if (!TextUtils.isEmpty(email) && !TextUtils.isEmpty(password)) {
-                authViewModel.signIn(email, password);
-            } else {
-                Toast.makeText(getContext(), "Email and password cannot be empty", Toast.LENGTH_SHORT).show();
-            }
+            authViewModel.signIn(email, password);
         });
 
         buttonGoToSignUp.setOnClickListener(v -> {
-            // Navigate to SignUpFragment using the action defined in nav_graph.xml
             navController.navigate(R.id.action_loginFragment_to_signUpFragment);
         });
+    }
 
-        // Observe user authentication state
+    private void observeViewModel() {
         authViewModel.getUser().observe(getViewLifecycleOwner(), firebaseUser -> {
             if (firebaseUser != null) {
-                Log.d("LoginFragment", "User logged in: " + firebaseUser.getEmail());
-                // Navigate to ParkListFragment (or main app screen)
-                // Clear back stack up to loginFragment
-                navController.navigate(R.id.action_loginFragment_to_parkListFragment);
-            } else {
-                Log.d("LoginFragment", "User is null, not navigating from login.");
-                // User is null (logged out or login failed), stay on login or handle error
+                // This navigation is now handled by MainActivity's observer
+                 Log.d("LoginFragment", "User is logged in. Navigation will be handled by MainActivity.");
             }
         });
 
         authViewModel.getErrorMessage().observe(getViewLifecycleOwner(), errorMessage -> {
             if (errorMessage != null && !errorMessage.isEmpty()) {
                 Toast.makeText(getContext(), errorMessage, Toast.LENGTH_LONG).show();
-                authViewModel.clearErrorMessage(); // Clear message after showing
+                authViewModel.clearErrorMessage();
+            }
+        });
+
+        authViewModel.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> {
+            if (isLoading) {
+                progressBar.setVisibility(View.VISIBLE);
+                buttonLogin.setEnabled(false);
+                buttonGoToSignUp.setEnabled(false);
+                editTextEmail.setEnabled(false);
+                editTextPassword.setEnabled(false);
+            } else {
+                progressBar.setVisibility(View.GONE);
+                validateInput(); // Re-validate to set button state correctly
+                buttonGoToSignUp.setEnabled(true);
+                editTextEmail.setEnabled(true);
+                editTextPassword.setEnabled(true);
             }
         });
     }

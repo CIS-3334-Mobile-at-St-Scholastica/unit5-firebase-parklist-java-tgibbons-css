@@ -54,6 +54,7 @@ dependencies {
     implementation(libs.androidx.navigation.fragment)
     implementation(libs.androidx.navigation.ui)
     implementation(libs.firebase.firestore)
+    implementation(libs.firebase.auth)
 
     // Standard Testing Libraries
     testImplementation(libs.junit)

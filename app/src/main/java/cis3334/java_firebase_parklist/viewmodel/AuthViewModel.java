@@ -3,81 +3,69 @@ package cis3334.java_firebase_parklist.viewmodel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
-import cis3334.java_firebase_parklist.data.model.User; // Ensure this import is correct
+
+import com.google.firebase.auth.FirebaseUser;
+
+import cis3334.java_firebase_parklist.data.firebase.FirebaseService;
 
 public class AuthViewModel extends ViewModel {
 
-    private final MutableLiveData<User> _user = new MutableLiveData<>(null);
-    public LiveData<User> getUser() {
+    private final FirebaseService firebaseService = new FirebaseService();
+
+    private final MutableLiveData<FirebaseUser> _user = new MutableLiveData<>();
+    public LiveData<FirebaseUser> getUser() {
         return _user;
     }
 
-    // For error messages, as used in LoginFragment and SignUpFragment
     private final MutableLiveData<String> _errorMessage = new MutableLiveData<>(null);
     public LiveData<String> getErrorMessage() {
         return _errorMessage;
     }
 
+    private final MutableLiveData<Boolean> _isLoading = new MutableLiveData<>(false);
+    public LiveData<Boolean> getIsLoading() {
+        return _isLoading;
+    }
+
+    public AuthViewModel() {
+        // Check for current user when the ViewModel is created
+        _user.setValue(firebaseService.getCurrentUser());
+    }
+
+    public void signIn(String email, String password) {
+        _isLoading.setValue(true);
+        firebaseService.signInWithEmail(email, password)
+            .addOnSuccessListener(authResult -> {
+                _user.postValue(authResult.getUser());
+                _errorMessage.postValue(null);
+                _isLoading.postValue(false);
+            })
+            .addOnFailureListener(e -> {
+                _errorMessage.postValue(e.getMessage());
+                _isLoading.postValue(false);
+            });
+    }
+
+    public void signUp(String email, String password) {
+        _isLoading.setValue(true);
+        firebaseService.signUpWithEmail(email, password)
+            .addOnSuccessListener(authResult -> {
+                _user.postValue(authResult.getUser());
+                _errorMessage.postValue(null);
+                _isLoading.postValue(false);
+            })
+            .addOnFailureListener(e -> {
+                _errorMessage.postValue(e.getMessage());
+                _isLoading.postValue(false);
+            });
+    }
+
+    public void signOut() {
+        firebaseService.signOut();
+        _user.setValue(null);
+    }
+
     public void clearErrorMessage() {
         _errorMessage.setValue(null);
-    }
-
-    // Potential future additions:
-    // private final MutableLiveData<Boolean> _authInProgress = new MutableLiveData<>(false);
-    // public LiveData<Boolean> getAuthInProgress() { return _authInProgress; }
-
-    /**
-     * Simulates signing in a user.
-     * Later, this will call Firebase Authentication.
-     */
-    public void signIn(String email, String password) {
-        // TODO: Implement actual Firebase sign-in
-        if (email != null && !email.isEmpty() && password != null && !password.isEmpty()) {
-            _user.setValue(new User(
-                "dummyUid-" + email.hashCode(),
-                email,
-                "Dummy " + (email.contains("@") ? email.substring(0, email.indexOf('@')) : email),
-                "Any"
-            ));
-            _errorMessage.setValue(null); // Clear any previous error
-        } else {
-            // _user.setValue(null); // Ensure user is null if sign-in fails
-            _errorMessage.setValue("Email and password cannot be blank.");
-        }
-    }
-
-    /**
-     * Simulates signing up a new user.
-     * Later, this will call Firebase Authentication.
-     */
-    public void signUp(String email, String password, String displayName, String favoriteParkType) {
-        // TODO: Implement actual Firebase sign-up
-        if (email != null && !email.isEmpty() && password != null && !password.isEmpty()) {
-            _user.setValue(new User(
-                "dummyUid-" + email.hashCode() + "-new",
-                email,
-                displayName,
-                favoriteParkType
-            ));
-            _errorMessage.setValue(null);
-        } else {
-            // _user.setValue(null);
-            _errorMessage.setValue("Email and password cannot be blank for sign up.");
-        }
-    }
-
-    /**
-     * Signs out the current user.
-     */
-    public void signOut() {
-        // TODO: Implement actual Firebase sign-out
-        _user.setValue(null);
-        // _errorMessage.setValue(null); // Optionally clear errors on sign out
-    }
-
-    @Override
-    protected void onCleared() {
-        super.onCleared();
-        // Clean up resources if any
     }
 }
