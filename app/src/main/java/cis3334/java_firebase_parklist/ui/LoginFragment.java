@@ -33,7 +33,6 @@ public class LoginFragment extends Fragment {
     private TextInputEditText editTextPassword;
     private Button buttonLogin;
     private Button buttonGoToSignUp;
-    private ProgressBar progressBar;
 
     public LoginFragment() {
         // Required empty public constructor
@@ -60,7 +59,6 @@ public class LoginFragment extends Fragment {
         editTextPassword = view.findViewById(R.id.editTextPasswordLogin);
         buttonLogin = view.findViewById(R.id.buttonLogin);
         buttonGoToSignUp = view.findViewById(R.id.buttonGoToSignUp);
-        progressBar = view.findViewById(R.id.progressBarLogin);
 
         setupInputValidation();
         setupClickListeners();
@@ -103,28 +101,7 @@ public class LoginFragment extends Fragment {
             }
         });
 
-        authViewModel.getErrorMessage().observe(getViewLifecycleOwner(), errorMessage -> {
-            if (errorMessage != null && !errorMessage.isEmpty()) {
-                Toast.makeText(getContext(), errorMessage, Toast.LENGTH_LONG).show();
-                authViewModel.clearErrorMessage();
-            }
-        });
 
-        authViewModel.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> {
-            if (isLoading) {
-                progressBar.setVisibility(View.VISIBLE);
-                buttonLogin.setEnabled(false);
-                buttonGoToSignUp.setEnabled(false);
-                editTextEmail.setEnabled(false);
-                editTextPassword.setEnabled(false);
-            } else {
-                progressBar.setVisibility(View.GONE);
-                validateInput(); // Re-validate to set button state correctly
-                buttonGoToSignUp.setEnabled(true);
-                editTextEmail.setEnabled(true);
-                editTextPassword.setEnabled(true);
-            }
-        });
     }
 
     private void validateInput() {

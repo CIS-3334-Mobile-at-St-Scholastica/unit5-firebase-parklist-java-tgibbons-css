@@ -17,46 +17,26 @@ public class AuthViewModel extends ViewModel {
         return _user;
     }
 
-    private final MutableLiveData<String> _errorMessage = new MutableLiveData<>(null);
-    public LiveData<String> getErrorMessage() {
-        return _errorMessage;
-    }
-
-    private final MutableLiveData<Boolean> _isLoading = new MutableLiveData<>(false);
-    public LiveData<Boolean> getIsLoading() {
-        return _isLoading;
-    }
-
     public AuthViewModel() {
         // Check for current user when the ViewModel is created
         _user.setValue(firebaseService.getCurrentUser());
     }
 
     public void signIn(String email, String password) {
-        _isLoading.setValue(true);
         firebaseService.signInWithEmail(email, password)
             .addOnSuccessListener(authResult -> {
                 _user.postValue(authResult.getUser());
-                _errorMessage.postValue(null);
-                _isLoading.postValue(false);
-            })
+           })
             .addOnFailureListener(e -> {
-                _errorMessage.postValue(e.getMessage());
-                _isLoading.postValue(false);
             });
     }
 
     public void signUp(String email, String password) {
-        _isLoading.setValue(true);
         firebaseService.signUpWithEmail(email, password)
             .addOnSuccessListener(authResult -> {
                 _user.postValue(authResult.getUser());
-                _errorMessage.postValue(null);
-                _isLoading.postValue(false);
             })
             .addOnFailureListener(e -> {
-                _errorMessage.postValue(e.getMessage());
-                _isLoading.postValue(false);
             });
     }
 
@@ -65,7 +45,5 @@ public class AuthViewModel extends ViewModel {
         _user.setValue(null);
     }
 
-    public void clearErrorMessage() {
-        _errorMessage.setValue(null);
-    }
+
 }

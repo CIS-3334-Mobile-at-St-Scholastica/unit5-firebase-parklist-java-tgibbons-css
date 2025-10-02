@@ -36,7 +36,6 @@ public class SignUpFragment extends Fragment {
     private TextInputEditText editTextPassword;
     private TextInputEditText editTextConfirmPassword;
     private Button buttonCreateAccount;
-    private ProgressBar progressBar;
 
     // Other UI elements that will be disabled during sign-up
     private TextInputEditText editTextDisplayName;
@@ -72,7 +71,6 @@ public class SignUpFragment extends Fragment {
         editTextPassword = view.findViewById(R.id.editTextPasswordSignUp);
         editTextConfirmPassword = view.findViewById(R.id.editTextConfirmPasswordSignUp);
         buttonCreateAccount = view.findViewById(R.id.buttonCreateAccount);
-        progressBar = view.findViewById(R.id.progressBarSignUp);
         // Other views
         editTextDisplayName = view.findViewById(R.id.editTextDisplayNameSignUp);
         editTextFavParkType = view.findViewById(R.id.editTextFavParkTypeSignUp);
@@ -114,17 +112,6 @@ public class SignUpFragment extends Fragment {
             }
         });
 
-        authViewModel.getErrorMessage().observe(getViewLifecycleOwner(), errorMessage -> {
-            if (errorMessage != null && !errorMessage.isEmpty()) {
-                Toast.makeText(getContext(), errorMessage, Toast.LENGTH_LONG).show();
-                authViewModel.clearErrorMessage();
-            }
-        });
-
-        authViewModel.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> {
-            setUiEnabled(!isLoading);
-            progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
-        });
     }
 
     private void validateInput() {
